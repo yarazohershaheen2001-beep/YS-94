@@ -5,6 +5,7 @@ from .main import (
     platforms_keyboard,
     payment_choice_keyboard,
     payment_methods_keyboard,
+    admin_panel_keyboard,
     admin_action_keyboard,
 )
 from .packages import (
@@ -23,6 +24,7 @@ __all__ = [
     "platforms_keyboard",
     "payment_choice_keyboard",
     "payment_methods_keyboard",
+    "admin_panel_keyboard",
     "admin_action_keyboard",
     "tiktok_packages_keyboard",
     "instagram_packages_keyboard",
