@@ -26,14 +26,13 @@ from aiogram.fsm.context import FSMContext
 router = Router()
 logger = logging.getLogger(__name__)
 
-# Map platform name → (image URL, caption, keyboard function)
 PLATFORM_CONFIG = {
-    "tiktok": (TIKTOK_IMAGE, "خدمات تيك توك المتاحة", tiktok_packages_keyboard),
-    "instagram": (INSTAGRAM_IMAGE, "خدمات انستغرام المتاحة", instagram_packages_keyboard),
-    "facebook": (FACEBOOK_IMAGE, "خدمات فيسبوك المتاحة", facebook_packages_keyboard),
-    "telegram": (TELEGRAM_IMAGE, "خدمات تيليجرام المتاحة", telegram_packages_keyboard),
-    "snapchat": (SNAPCHAT_IMAGE, "خدمات سناب شات المتاحة", snapchat_packages_keyboard),
-    "youtube": (YOUTUBE_IMAGE, "خدمات يوتيوب المتاحة", youtube_packages_keyboard),
+    "tiktok":    (TIKTOK_IMAGE,    "خدمات تيك توك المتاحة",    tiktok_packages_keyboard),
+    "instagram": (INSTAGRAM_IMAGE, "خدمات انستغرام المتاحة",   instagram_packages_keyboard),
+    "facebook":  (FACEBOOK_IMAGE,  "خدمات فيسبوك المتاحة",     facebook_packages_keyboard),
+    "telegram":  (TELEGRAM_IMAGE,  "خدمات تيليجرام المتاحة",   telegram_packages_keyboard),
+    "snapchat":  (SNAPCHAT_IMAGE,  "خدمات سناب شات المتاحة",   snapchat_packages_keyboard),
+    "youtube":   (YOUTUBE_IMAGE,   "خدمات يوتيوب المتاحة",     youtube_packages_keyboard),
 }
 
 
@@ -56,17 +55,37 @@ async def show_platform_packages(callback: CallbackQuery, callback_data: Platfor
             reply_markup=keyboard_fn(),
         )
     except Exception as e:
-        logger.warning("Failed to send platform image for %s: %s. Falling back to text.", platform, e)
+        logger.warning(
+            "Failed to send platform image for %s: %s. Falling back to text.", platform, e
+        )
         await callback.message.answer(caption, reply_markup=keyboard_fn())
 
     await callback.answer()
 
 
 @router.callback_query(PackageCallback.filter())
-async def select_package(callback: CallbackQuery, callback_data: PackageCallback, state: FSMContext):
-    """Store selected service in FSM and prompt user to proceed to payment."""
-    service_label = f"{callback_data.platform.upper()} | {callback_data.label} | {callback_data.price}"
-    await state.update_data(selected_service=service_label)
+async def select_package(
+    callback: CallbackQuery,
+    callback_data: PackageCallback,
+    state: FSMContext,
+):
+    """
+    Store selected service details in FSM and prompt user to proceed to payment.
+    Saves extra fields (price_str, platform, package_label) so the Stars payment
+    handler can build a correct Telegram invoice without re-parsing the combined label.
+    """
+    platform      = callback_data.platform
+    label         = callback_data.label
+    price         = callback_data.price
+
+    service_label = f"{platform.upper()} | {label} | {price}"
+
+    await state.update_data(
+        selected_service=service_label,
+        price_str=price,          # e.g. "5 د.أ"
+        platform=platform,        # e.g. "tiktok"
+        package_label=label,      # e.g. "باقة البداية - 3K متابع"
+    )
     await state.set_state(OrderStates.waiting_for_payment_method)
 
     await callback.message.answer(
