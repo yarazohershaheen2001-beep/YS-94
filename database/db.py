@@ -59,6 +59,20 @@ async def init_db() -> None:
             )
         """)
 
+        # Dedicated table for Telegram Stars (XTR) payments
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS stars_payments (
+                id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+                order_id           INTEGER NOT NULL,
+                user_id            INTEGER NOT NULL,
+                stars_amount       INTEGER NOT NULL,
+                telegram_charge_id TEXT    NOT NULL,
+                status             TEXT    NOT NULL DEFAULT 'paid',
+                created_at         TEXT    NOT NULL,
+                FOREIGN KEY (order_id) REFERENCES orders(id)
+            )
+        """)
+
         await db.commit()
     logger.info("Database initialized — tables ready.")
 
@@ -209,6 +223,27 @@ async def get_orders_by_status(status: str, limit: int = 20) -> list[dict]:
 # ──────────────────────────────────────────────────────────
 # Statistics
 # ──────────────────────────────────────────────────────────
+
+async def log_stars_payment(
+    order_id: int,
+    user_id: int,
+    stars_amount: int,
+    charge_id: str,
+) -> None:
+    """Record a completed Telegram Stars (XTR) payment in the stars_payments table."""
+    created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(
+            """
+            INSERT INTO stars_payments
+                (order_id, user_id, stars_amount, telegram_charge_id, status, created_at)
+            VALUES (?, ?, ?, ?, 'paid', ?)
+            """,
+            (order_id, user_id, stars_amount, charge_id, created_at),
+        )
+        await db.commit()
+    logger.info("Stars payment logged — order #%s — %s XTR — charge: %s", order_id, stars_amount, charge_id)
+
 
 async def get_payment_stats() -> list[dict]:
     """Return order counts grouped by payment method."""
