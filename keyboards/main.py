@@ -2,8 +2,12 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from .callbacks import NavCallback, AdminActionCallback, PaymentMethodCallback
 
 
+# ══════════════════════════════════════════════════════════
+# User-facing keyboards
+# ══════════════════════════════════════════════════════════
+
 def subscription_keyboard() -> InlineKeyboardMarkup:
-    """Keyboard shown when a user has not subscribed to required channels."""
+    """Shown to regular users who have not subscribed yet."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="الدعم ⚙️", url="https://t.me/shaheen_ys"),
@@ -21,7 +25,7 @@ def subscription_keyboard() -> InlineKeyboardMarkup:
 
 
 def main_menu_keyboard() -> InlineKeyboardMarkup:
-    """Main menu shown after the welcome video."""
+    """Main menu shown to regular users after passing subscription check."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
@@ -58,7 +62,7 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
 
 
 def developer_keyboard() -> InlineKeyboardMarkup:
-    """Keyboard shown on the developer profile screen."""
+    """Developer profile buttons."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="تليجرام", url="https://t.me/Y9_S4"),
@@ -84,20 +88,20 @@ def developer_keyboard() -> InlineKeyboardMarkup:
 
 
 def platforms_keyboard() -> InlineKeyboardMarkup:
-    """Keyboard for selecting a social media platform."""
+    """Platform selection keyboard."""
     from .callbacks import PlatformCallback
     return InlineKeyboardMarkup(inline_keyboard=[
         [
-            InlineKeyboardButton(text="TikTok", callback_data=PlatformCallback(name="tiktok").pack()),
+            InlineKeyboardButton(text="TikTok",    callback_data=PlatformCallback(name="tiktok").pack()),
             InlineKeyboardButton(text="Instagram", callback_data=PlatformCallback(name="instagram").pack()),
         ],
         [
-            InlineKeyboardButton(text="Telegram", callback_data=PlatformCallback(name="telegram").pack()),
-            InlineKeyboardButton(text="Snapchat", callback_data=PlatformCallback(name="snapchat").pack()),
+            InlineKeyboardButton(text="Telegram",  callback_data=PlatformCallback(name="telegram").pack()),
+            InlineKeyboardButton(text="Snapchat",  callback_data=PlatformCallback(name="snapchat").pack()),
         ],
         [
-            InlineKeyboardButton(text="Facebook", callback_data=PlatformCallback(name="facebook").pack()),
-            InlineKeyboardButton(text="YouTube", callback_data=PlatformCallback(name="youtube").pack()),
+            InlineKeyboardButton(text="Facebook",  callback_data=PlatformCallback(name="facebook").pack()),
+            InlineKeyboardButton(text="YouTube",   callback_data=PlatformCallback(name="youtube").pack()),
         ],
         [
             InlineKeyboardButton(
@@ -131,7 +135,7 @@ def payment_choice_keyboard() -> InlineKeyboardMarkup:
 
 
 def payment_methods_keyboard() -> InlineKeyboardMarkup:
-    """Keyboard listing all payment methods."""
+    """All payment methods."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
@@ -170,8 +174,57 @@ def payment_methods_keyboard() -> InlineKeyboardMarkup:
     ])
 
 
+# ══════════════════════════════════════════════════════════
+# Admin / Owner keyboards
+# ══════════════════════════════════════════════════════════
+
+def admin_panel_keyboard() -> InlineKeyboardMarkup:
+    """
+    Control panel shown to owner and admins on /start.
+    Each button maps to a NavCallback handled in handlers/admin.py.
+    """
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="📊 الإحصائيات",
+                callback_data=NavCallback(dest="ap_stats").pack(),
+            ),
+            InlineKeyboardButton(
+                text="📦 الطلبات",
+                callback_data=NavCallback(dest="ap_orders").pack(),
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="📢 إذاعة",
+                callback_data=NavCallback(dest="ap_broadcast").pack(),
+            ),
+            InlineKeyboardButton(
+                text="👥 المستخدمين",
+                callback_data=NavCallback(dest="ap_users").pack(),
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="⚙️ الإعدادات",
+                callback_data=NavCallback(dest="ap_settings").pack(),
+            ),
+            InlineKeyboardButton(
+                text="💳 المدفوعات",
+                callback_data=NavCallback(dest="ap_payments").pack(),
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="🌐 القائمة الرئيسية",
+                callback_data=NavCallback(dest="ap_main_menu").pack(),
+            ),
+        ],
+    ])
+
+
 def admin_action_keyboard(order_id: int, target_user_id: int) -> InlineKeyboardMarkup:
-    """Keyboard attached to order receipts in the admin channel."""
+    """Buttons on order receipt messages in the admin channel."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
