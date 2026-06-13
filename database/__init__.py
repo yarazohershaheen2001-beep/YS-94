@@ -10,6 +10,7 @@ from .db import (
     update_order_status,
     get_all_orders,
     get_orders_by_status,
+    get_payment_stats,
     get_stats,
 )
 
@@ -25,5 +26,6 @@ __all__ = [
     "update_order_status",
     "get_all_orders",
     "get_orders_by_status",
+    "get_payment_stats",
     "get_stats",
 ]
