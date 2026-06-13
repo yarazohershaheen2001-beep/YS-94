@@ -210,6 +210,33 @@ async def get_orders_by_status(status: str, limit: int = 20) -> list[dict]:
 # Statistics
 # ──────────────────────────────────────────────────────────
 
+async def get_payment_stats() -> list[dict]:
+    """Return order counts grouped by payment method."""
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("""
+            SELECT
+                payment_method,
+                COUNT(*) AS total,
+                SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted,
+                SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) AS rejected,
+                SUM(CASE WHEN status = 'pending'  THEN 1 ELSE 0 END) AS pending
+            FROM orders
+            GROUP BY payment_method
+            ORDER BY total DESC
+        """) as cursor:
+            rows = await cursor.fetchall()
+            return [
+                {
+                    "method":   r[0] or "غير محدد",
+                    "total":    r[1],
+                    "accepted": r[2],
+                    "rejected": r[3],
+                    "pending":  r[4],
+                }
+                for r in rows
+            ]
+
+
 async def get_stats() -> dict:
     """Return a summary dict with user and order counts."""
     async with aiosqlite.connect(DB_PATH) as db:
