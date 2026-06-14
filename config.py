@@ -1,11 +1,16 @@
 # ============================================================
-# config.py — YS | 94 Bot
+# config.py — ✳️ YS | Followers Bot
 # All sensitive values are loaded from the .env file.
 # ============================================================
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# ──────────────────────────────────────────────────────────
+# Bot identity
+# ──────────────────────────────────────────────────────────
+BOT_NAME: str = "✳️ - YS | Followers"
 
 # ──────────────────────────────────────────────────────────
 # [BOT_TOKEN] — Your Telegram bot token from @BotFather
@@ -38,19 +43,19 @@ if OWNER_ID:
 ADMIN_IDS: list[int] = list(_parsed_ids)
 
 # ──────────────────────────────────────────────────────────
-# [SUPPORT_CHANNEL] — Mandatory subscription channel #1
+# [SUPPORT_CHANNEL] — Support / community channel (kept for admin panel display)
 # ──────────────────────────────────────────────────────────
 SUPPORT_CHANNEL: str = os.getenv("SUPPORT_CHANNEL", "@shaheen_ys")
 
 # ──────────────────────────────────────────────────────────
-# [GIFT_CHANNEL] — Mandatory subscription channel #2
+# [GIFT_CHANNEL] — Gift / daily-reward channel
 # ──────────────────────────────────────────────────────────
 GIFT_CHANNEL: str = os.getenv("GIFT_CHANNEL", "@shaheen_mall_ys")
 
 # ──────────────────────────────────────────────────────────
 # Media URLs
 # ──────────────────────────────────────────────────────────
-WELCOME_VIDEO: str   = "https://files.catbox.moe/w62q88.mp4"
+WELCOME_VIDEO: str   = "https://files.catbox.moe/p8vyoa.mp4"
 DEVELOPER_IMAGE: str = "https://files.catbox.moe/szdu73.jpg"
 
 # Platform images
