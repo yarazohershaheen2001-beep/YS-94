@@ -1,6 +1,6 @@
 """
-YS | 94 Telegram Bot — Entry Point
-===================================
+✳️ YS | Followers — Telegram Bot Entry Point
+============================================
 Startup sequence:
   1. Load .env via config.py
   2. Configure logging (console + rotating file in logs/)
@@ -11,11 +11,11 @@ Startup sequence:
   7. Start polling
 
 Required env vars (set in .env):
-  BOT_TOKEN        ← [BOT_TOKEN location]
-  ADMIN_CHANNEL_ID ← [ADMIN_CHANNEL_ID location]
-  ADMIN_IDS        ← Comma-separated admin user IDs
-  SUPPORT_CHANNEL  ← @shaheen_ys
-  GIFT_CHANNEL     ← @fi1_oo
+  BOT_TOKEN        ← your Telegram bot token
+  ADMIN_CHANNEL_ID ← numeric ID of the private admin channel
+  OWNER_ID         ← your personal Telegram user ID
+  ADMIN_IDS        ← comma-separated admin user IDs
+  GIFT_CHANNEL     ← @shaheen_mall_ys
 """
 
 import asyncio
@@ -29,7 +29,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from config import BOT_TOKEN, ADMIN_IDS
+from config import BOT_TOKEN, BOT_NAME, ADMIN_IDS
 from database import init_db
 from handlers import (
     start_router,
@@ -51,12 +51,10 @@ def _setup_logging() -> None:
         datefmt="%Y-%m-%d %H:%M:%S",
     )
 
-    # Console handler
     console = logging.StreamHandler(sys.stdout)
     console.setFormatter(fmt)
     console.setLevel(logging.INFO)
 
-    # Rotating file handler — max 5 MB × 3 backups
     file_handler = logging.handlers.RotatingFileHandler(
         filename="logs/bot.log",
         maxBytes=5 * 1024 * 1024,
@@ -66,7 +64,6 @@ def _setup_logging() -> None:
     file_handler.setFormatter(fmt)
     file_handler.setLevel(logging.INFO)
 
-    # Error-only log file
     error_handler = logging.handlers.RotatingFileHandler(
         filename="logs/errors.log",
         maxBytes=2 * 1024 * 1024,
@@ -90,7 +87,6 @@ logger = logging.getLogger(__name__)
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 async def main() -> None:
-    # ── Validate configuration ───────────────────────────────────────────────
     if not BOT_TOKEN:
         logger.error(
             "❌ BOT_TOKEN is not set. "
@@ -100,30 +96,28 @@ async def main() -> None:
 
     if not ADMIN_IDS:
         logger.warning(
-            "⚠️  ADMIN_IDS is empty. Admin commands (/admin /stats etc.) "
-            "will not work until you add at least one admin user ID to .env."
+            "⚠️  ADMIN_IDS is empty. Admin panel will not be accessible "
+            "until you add at least one admin user ID to .env."
         )
 
-    # ── Database ─────────────────────────────────────────────────────────────
     os.makedirs("database", exist_ok=True)
     await init_db()
     logger.info("✅ Database ready.")
 
-    # ── Bot & Dispatcher ─────────────────────────────────────────────────────
     bot = Bot(
         token=BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     dp = Dispatcher(storage=MemoryStorage())
 
-    # Register routers — order is important: most-specific first
-    dp.include_router(start_router)      # /start + subscription gate
-    dp.include_router(admin_router)      # /admin commands + accept/reject callbacks
+    # Register routers — order matters: most-specific first
+    dp.include_router(start_router)      # /start — open access, admin panel
+    dp.include_router(admin_router)      # admin commands + accept/reject callbacks
     dp.include_router(menu_router)       # main menu navigation
     dp.include_router(platforms_router)  # platform & package selection
     dp.include_router(payment_router)    # payment method + receipt upload
 
-    logger.info("🤖 YS | 94 bot is starting — polling…")
+    logger.info("🤖 %s is starting — polling…", BOT_NAME)
 
     try:
         await dp.start_polling(
@@ -132,7 +126,7 @@ async def main() -> None:
         )
     finally:
         await bot.session.close()
-        logger.info("🔴 Bot stopped.")
+        logger.info("🔴 %s stopped.", BOT_NAME)
 
 
 if __name__ == "__main__":
