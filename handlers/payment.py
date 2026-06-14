@@ -300,7 +300,7 @@ async def successful_payment_handler(message: Message, bot: Bot):
         f"⭐ النجوم المدفوعة: <b>{stars_paid}</b>\n"
         f"🔢 رقم الطلب: <code>#{order_id}</code>\n\n"
         "🚀 تم قبول طلبك تلقائياً — سيتم التنفيذ قريباً.\n"
-        "شكراً لثقتك بـ <b>YS | 94</b> ⭐",
+        "شكراً لثقتك بـ <b>✳️ - YS | Followers</b> ⭐",
         reply_markup=main_menu_keyboard(),
     )
 
