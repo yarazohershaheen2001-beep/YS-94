@@ -196,7 +196,7 @@ async def panel_settings(callback: CallbackQuery):
     role = "👑 المالك" if is_owner(callback.from_user.id) else "🛡️ مشرف"
     owner_display = f"<code>{OWNER_ID}</code>" if OWNER_ID else "غير مُحدَّد"
     text = (
-        "⚙️ <b>إعدادات البوت — YS | 94</b>\n\n"
+        "⚙️ <b>إعدادات البوت — ✳️ YS | Followers</b>\n\n"
         f"👤 صلاحيتك: {role}\n"
         f"🔑 OWNER_ID: {owner_display}\n\n"
         "📡 <b>قنوات الاشتراك الإجباري:</b>\n"
@@ -236,9 +236,9 @@ async def panel_main_menu(callback: CallbackQuery):
     """🌐 القائمة الرئيسية button — lets admin browse the user-facing menu."""
     caption = (
         f"مرحباً <b>{callback.from_user.first_name}</b> 👋\n\n"
-        "أهلاً بك في بوت <b>YS | 777</b>\n\n"
+        "أهلاً بك في بوت <b>✳️ - YS | Followers</b>\n\n"
         "أنت تتصفح القائمة الرئيسية كمشرف.\n"
-        "الاشتراك الإجباري مُعطَّل لك."
+        "الاشتراك الإجباري: مُعطَّل."
     )
     await callback.message.answer(caption, reply_markup=main_menu_keyboard())
     await callback.answer()
@@ -253,7 +253,7 @@ async def cmd_admin(message: Message):
     """Show the admin control panel."""
     stats = await get_stats()
     text = (
-        "🛡️ <b>لوحة تحكم YS | 94</b>\n\n"
+        "🛡️ <b>لوحة تحكم ✳️ YS | Followers</b>\n\n"
         f"👥 المستخدمون: <b>{stats['users']}</b>\n"
         f"📦 إجمالي الطلبات: <b>{stats['total_orders']}</b>\n"
         f"✅ مقبولة: <b>{stats['accepted']}</b>\n"
@@ -365,7 +365,7 @@ async def cmd_broadcast_start(message: Message, state: FSMContext):
 async def cmd_helpadmin(message: Message):
     """Show full admin command reference."""
     text = (
-        "📖 <b>دليل أوامر الإدارة — YS | 94</b>\n\n"
+        "📖 <b>دليل أوامر الإدارة — ✳️ YS | Followers</b>\n\n"
         "┌ <b>/admin</b>\n"
         "│ عرض لوحة التحكم مع إحصائيات سريعة\n\n"
         "┌ <b>/stats</b>\n"
