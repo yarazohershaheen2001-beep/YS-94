@@ -6,26 +6,8 @@ from .callbacks import NavCallback, AdminActionCallback, PaymentMethodCallback
 # User-facing keyboards
 # ══════════════════════════════════════════════════════════
 
-def subscription_keyboard() -> InlineKeyboardMarkup:
-    """Shown to regular users who have not subscribed yet."""
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="الدعم ⚙️", url="https://t.me/shaheen_ys"),
-        ],
-        [
-            InlineKeyboardButton(text="متجر شاهين 🛍️", url="https://t.me/shaheen_mall_ys"),
-        ],
-        [
-            InlineKeyboardButton(
-                text="تحقق من الاشتراك ✅",
-                callback_data=NavCallback(dest="check_subscription").pack(),
-            ),
-        ],
-    ])
-
-
 def main_menu_keyboard() -> InlineKeyboardMarkup:
-    """Main menu shown to regular users after passing subscription check."""
+    """Main menu — shown to every regular user right after /start."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
@@ -56,7 +38,10 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
                 text="📋 طلباتي",
                 callback_data=NavCallback(dest="my_orders").pack(),
             ),
-            InlineKeyboardButton(text="نظام الإحالة", url="https://t.me/shaheen_mall_ys"),
+            InlineKeyboardButton(
+                text="🛍️ متجر شاهين",
+                url="https://t.me/shaheen_mall_ys",
+            ),
         ],
         [
             InlineKeyboardButton(
@@ -86,7 +71,7 @@ def developer_keyboard() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton(
-                text="رجوع ↩️",
+                text="↩️ رجوع",
                 callback_data=NavCallback(dest="main_menu").pack(),
             ),
         ],
@@ -111,7 +96,7 @@ def platforms_keyboard() -> InlineKeyboardMarkup:
         ],
         [
             InlineKeyboardButton(
-                text="رجوع ↩️",
+                text="↩️ رجوع",
                 callback_data=NavCallback(dest="main_menu").pack(),
             ),
         ],
@@ -181,7 +166,7 @@ def payment_methods_keyboard() -> InlineKeyboardMarkup:
 
 
 def dream_keyboard() -> InlineKeyboardMarkup:
-    """Prize and reward links shown in the dream/حلم section."""
+    """Prize and reward links — the dream/حلم section."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
@@ -233,11 +218,11 @@ def dream_keyboard() -> InlineKeyboardMarkup:
 
 
 # ══════════════════════════════════════════════════════════
-# Admin / Owner keyboards
+# Admin / Owner keyboards (never shown to regular users)
 # ══════════════════════════════════════════════════════════
 
 def admin_panel_keyboard() -> InlineKeyboardMarkup:
-    """Control panel shown to owner and admins on /start."""
+    """Control panel — shown ONLY to owner and admins on /start."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
