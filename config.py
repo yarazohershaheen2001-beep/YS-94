@@ -38,14 +38,14 @@ if OWNER_ID:
 ADMIN_IDS: list[int] = list(_parsed_ids)
 
 # ──────────────────────────────────────────────────────────
-# [SUPPORT_CHANNEL] — Mandatory subscription channel
+# [SUPPORT_CHANNEL] — Mandatory subscription channel #1
 # ──────────────────────────────────────────────────────────
 SUPPORT_CHANNEL: str = os.getenv("SUPPORT_CHANNEL", "@shaheen_ys")
 
 # ──────────────────────────────────────────────────────────
-# [GIFT_CHANNEL] — Mandatory subscription channel
+# [GIFT_CHANNEL] — Mandatory subscription channel #2
 # ──────────────────────────────────────────────────────────
-GIFT_CHANNEL: str = os.getenv("GIFT_CHANNEL", "@fi1_oo")
+GIFT_CHANNEL: str = os.getenv("GIFT_CHANNEL", "@shaheen_mall_ys")
 
 # ──────────────────────────────────────────────────────────
 # Media URLs
