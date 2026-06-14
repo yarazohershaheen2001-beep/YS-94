@@ -1,30 +1,30 @@
 import logging
 
-from aiogram import Router, Bot, F
+from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from config import WELCOME_VIDEO
+from config import WELCOME_VIDEO, BOT_NAME
 from database import register_user, get_user_orders
-from keyboards import subscription_keyboard, main_menu_keyboard, admin_panel_keyboard
+from keyboards import main_menu_keyboard, admin_panel_keyboard
 from keyboards.callbacks import NavCallback
-from utils import check_subscription, is_admin, is_owner
+from utils import is_admin, is_owner
 
 router = Router()
 logger = logging.getLogger(__name__)
 
 
 # ═══════════════════════════════════════════════════════════
-# /start  — entry point with owner/admin bypass
+# /start — open access (no mandatory subscription)
 # ═══════════════════════════════════════════════════════════
 
 @router.message(CommandStart())
-async def cmd_start(message: Message, bot: Bot):
+async def cmd_start(message: Message):
     """
-    Entry point logic:
-      • Owner / Admin  → skip subscription entirely, show admin control panel.
-      • Regular user   → check subscription; if OK show welcome, else show gate.
+    Entry point — no subscription gate.
+      • Owner / Admin  → admin control panel.
+      • Any other user → welcome video + main menu.
     """
     user = message.from_user
 
@@ -35,57 +35,10 @@ async def cmd_start(message: Message, bot: Bot):
     )
     logger.info("User %s (%s) sent /start", user.id, user.username or "no-username")
 
-    # ── Owner / Admin: bypass subscription entirely ─────────
     if is_admin(user.id):
         await _send_admin_welcome(message, user.first_name or "مشرف")
-        return
-
-    # ── Regular user: enforce subscription ──────────────────
-    subscribed, failed_channel = await check_subscription(bot, user.id)
-
-    if not subscribed:
-        channel_hint = (
-            f"\n\n📌 القناة المطلوبة: <b>{failed_channel}</b>"
-            if failed_channel else ""
-        )
-        await message.answer(
-            f"⚠️ <b>يجب الاشتراك في القنوات التالية أولاً</b>{channel_hint}\n\n"
-            "اشترك ثم اضغط على زر التحقق للمتابعة.",
-            reply_markup=subscription_keyboard(),
-        )
-        return
-
-    await _send_welcome(message, user.first_name or "صديقي")
-
-
-# ═══════════════════════════════════════════════════════════
-# ✅ Subscription verification button
-# ═══════════════════════════════════════════════════════════
-
-@router.callback_query(NavCallback.filter(F.dest == "check_subscription"))
-async def check_sub_callback(callback: CallbackQuery, bot: Bot):
-    """Re-check subscription when user presses the verify button."""
-    user = callback.from_user
-
-    # Admins bypass — they should never see this button, but guard anyway
-    if is_admin(user.id):
-        await callback.answer()
-        await _send_admin_welcome(callback.message, user.first_name or "مشرف")
-        return
-
-    subscribed, failed_channel = await check_subscription(bot, user.id)
-
-    if not subscribed:
-        channel_hint = f"\nالقناة: {failed_channel}" if failed_channel else ""
-        await callback.answer(
-            f"❌ لم يتم التحقق. اشترك في جميع القنوات أولاً.{channel_hint}",
-            show_alert=True,
-        )
-        return
-
-    await callback.message.delete()
-    await _send_welcome(callback.message, user.first_name or "صديقي")
-    await callback.answer()
+    else:
+        await _send_welcome(message, user.first_name or "صديقي")
 
 
 # ═══════════════════════════════════════════════════════════
@@ -117,7 +70,7 @@ async def cmd_cancel(message: Message, state: FSMContext):
 
 @router.callback_query(NavCallback.filter(F.dest == "cancel"))
 async def cancel_callback(callback: CallbackQuery, state: FSMContext):
-    """Handle the ❌ إلغاء الطلب inline button — mirrors /cancel."""
+    """Handle the ❌ إلغاء الطلب inline button."""
     current_state = await state.get_state()
     await state.clear()
 
@@ -141,7 +94,6 @@ async def cancel_callback(callback: CallbackQuery, state: FSMContext):
 # ═══════════════════════════════════════════════════════════
 
 def _fmt_user_order(order: dict, index: int) -> str:
-    """Format a single order row for the user-facing order history view."""
     status_map = {
         "pending":  "⏳ معلق",
         "accepted": "✅ مقبول",
@@ -159,14 +111,12 @@ def _fmt_user_order(order: dict, index: int) -> str:
 
 @router.message(Command("myorders"))
 async def cmd_myorders(message: Message):
-    """Show the user's own last 10 orders with statuses."""
     user = message.from_user
     orders = await get_user_orders(user.id, limit=10)
 
     if not orders:
         await message.answer(
-            "📭 <b>لا توجد طلبات مسجلة بعد.</b>\n\n"
-            "ابدأ أول طلب الآن من القائمة الرئيسية 👇",
+            "📭 <b>لا توجد طلبات مسجلة بعد.</b>\n\nابدأ أول طلب الآن من القائمة الرئيسية 👇",
             reply_markup=main_menu_keyboard(),
         )
         return
@@ -175,8 +125,7 @@ async def cmd_myorders(message: Message):
     for i, order in enumerate(orders, start=1):
         lines.append(_fmt_user_order(order, i))
         lines.append("─" * 24)
-
-    if lines and lines[-1].startswith("─"):
+    if lines[-1].startswith("─"):
         lines.pop()
 
     await message.answer("\n".join(lines))
@@ -185,14 +134,12 @@ async def cmd_myorders(message: Message):
 
 @router.callback_query(NavCallback.filter(F.dest == "my_orders"))
 async def my_orders_callback(callback: CallbackQuery):
-    """Handle the 📋 طلباتي inline button — mirrors /myorders."""
     user = callback.from_user
     orders = await get_user_orders(user.id, limit=10)
 
     if not orders:
         await callback.message.answer(
-            "📭 <b>لا توجد طلبات مسجلة بعد.</b>\n\n"
-            "ابدأ أول طلب الآن من القائمة الرئيسية 👇",
+            "📭 <b>لا توجد طلبات مسجلة بعد.</b>\n\nابدأ أول طلب الآن من القائمة الرئيسية 👇",
             reply_markup=main_menu_keyboard(),
         )
         await callback.answer()
@@ -202,15 +149,12 @@ async def my_orders_callback(callback: CallbackQuery):
     for i, order in enumerate(orders, start=1):
         lines.append(_fmt_user_order(order, i))
         lines.append("─" * 24)
-
-    if lines and lines[-1].startswith("─"):
+    if lines[-1].startswith("─"):
         lines.pop()
 
     await callback.message.answer("\n".join(lines))
     await callback.answer()
-    logger.info(
-        "User %s viewed order history via button (%s orders)", user.id, len(orders),
-    )
+    logger.info("User %s viewed order history via button (%s orders)", user.id, len(orders))
 
 
 # ═══════════════════════════════════════════════════════════
@@ -218,12 +162,21 @@ async def my_orders_callback(callback: CallbackQuery):
 # ═══════════════════════════════════════════════════════════
 
 async def _send_welcome(message: Message, first_name: str):
-    """Send the welcome video + main menu to a regular subscribed user."""
+    """Send the welcome video + main menu to any user (no subscription gate)."""
     caption = (
         f"مرحباً <b>{first_name}</b> 👋\n\n"
-        "أهلاً بك في بوت <b>YS | 777</b>\n\n"
-        "يوفر لك البوت خدمات السوشيال ميديا الاحترافية بأفضل الأسعار.\n\n"
-        "اختر الخدمة المناسبة من القائمة بالأسفل."
+        f"أهلاً بك في <b>{BOT_NAME}</b>\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━━\n\n"
+        "🌟 المتجر الاحترافي لخدمات السوشيال ميديا\n\n"
+        "📱 <b>خدماتنا المتاحة:</b>\n"
+        "• زيادة المتابعين والمشتركين\n"
+        "• زيادة المشاهدات والإعجابات\n"
+        "• جميع المنصات: TikTok · Instagram · YouTube\n"
+        "  Facebook · Snapchat · Telegram\n\n"
+        "💎 أسعار تنافسية وجودة مضمونة\n"
+        "⚡ تنفيذ سريع بعد تأكيد الطلب\n\n"
+        "━━━━━━━━━━━━━━━━━━━━━━\n"
+        "اختر الخدمة المناسبة من القائمة أدناه 👇"
     )
     try:
         await message.answer_video(
@@ -237,18 +190,16 @@ async def _send_welcome(message: Message, first_name: str):
 
 
 async def _send_admin_welcome(message: Message, first_name: str):
-    """
-    Send the admin control panel to owner / admins.
-    Subscription check is completely skipped for these users.
-    """
-    user_id = message.from_user.id if hasattr(message, "from_user") and message.from_user else 0
+    """Send the admin control panel to owner / admins."""
+    user_id = message.from_user.id if message.from_user else 0
     role    = "👑 المالك" if is_owner(user_id) else "🛡️ مشرف"
 
     text = (
         f"مرحباً <b>{first_name}</b> — {role}\n\n"
         "━━━━━━━━━━━━━━━━━━━━━━\n"
-        "🔐 أنت في <b>وضع الإدارة</b>\n"
-        "فحص الاشتراك مُعطَّل لك تلقائياً.\n\n"
+        f"🔐 <b>{BOT_NAME}</b> — وضع الإدارة\n\n"
+        "الاشتراك الإجباري: <b>مُعطَّل</b>\n"
+        "صلاحياتك: <b>كاملة</b>\n\n"
         "اختر من لوحة التحكم أدناه:"
     )
     await message.answer(text, reply_markup=admin_panel_keyboard())
