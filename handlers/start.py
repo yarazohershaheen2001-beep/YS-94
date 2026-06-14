@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 async def cmd_start(message: Message, bot: Bot):
     """
     Entry point logic:
-      • Owner / Admin  → skip subscription, show admin control panel.
-      • Regular user   → check subscription, show welcome if subscribed.
+      • Owner / Admin  → skip subscription entirely, show admin control panel.
+      • Regular user   → check subscription; if OK show welcome, else show gate.
     """
     user = message.from_user
 
@@ -35,16 +35,21 @@ async def cmd_start(message: Message, bot: Bot):
     )
     logger.info("User %s (%s) sent /start", user.id, user.username or "no-username")
 
-    # ── Owner / Admin bypass — no subscription check ever ──
+    # ── Owner / Admin: bypass subscription entirely ─────────
     if is_admin(user.id):
         await _send_admin_welcome(message, user.first_name or "مشرف")
         return
 
-    # ── Regular user — enforce subscription ──
-    subscribed = await check_subscription(bot, user.id)
+    # ── Regular user: enforce subscription ──────────────────
+    subscribed, failed_channel = await check_subscription(bot, user.id)
+
     if not subscribed:
+        channel_hint = (
+            f"\n\n📌 القناة المطلوبة: <b>{failed_channel}</b>"
+            if failed_channel else ""
+        )
         await message.answer(
-            "⚠️ <b>يجب الاشتراك في القنوات التالية أولاً</b>\n\n"
+            f"⚠️ <b>يجب الاشتراك في القنوات التالية أولاً</b>{channel_hint}\n\n"
             "اشترك ثم اضغط على زر التحقق للمتابعة.",
             reply_markup=subscription_keyboard(),
         )
@@ -54,7 +59,7 @@ async def cmd_start(message: Message, bot: Bot):
 
 
 # ═══════════════════════════════════════════════════════════
-# Subscription verification (regular users only)
+# ✅ Subscription verification button
 # ═══════════════════════════════════════════════════════════
 
 @router.callback_query(NavCallback.filter(F.dest == "check_subscription"))
@@ -62,17 +67,18 @@ async def check_sub_callback(callback: CallbackQuery, bot: Bot):
     """Re-check subscription when user presses the verify button."""
     user = callback.from_user
 
-    # Admins should never see this button, but guard just in case
+    # Admins bypass — they should never see this button, but guard anyway
     if is_admin(user.id):
         await callback.answer()
         await _send_admin_welcome(callback.message, user.first_name or "مشرف")
         return
 
-    subscribed = await check_subscription(bot, user.id)
+    subscribed, failed_channel = await check_subscription(bot, user.id)
 
     if not subscribed:
+        channel_hint = f"\nالقناة: {failed_channel}" if failed_channel else ""
         await callback.answer(
-            "❌ لم يتم التحقق. يرجى الاشتراك في القنوات أولاً.",
+            f"❌ لم يتم التحقق. اشترك في جميع القنوات أولاً.{channel_hint}",
             show_alert=True,
         )
         return
@@ -104,8 +110,7 @@ async def cmd_cancel(message: Message, state: FSMContext):
         message.from_user.id, current_state,
     )
     await message.answer(
-        "✅ <b>تم إلغاء الطلب بنجاح.</b>\n\n"
-        "يمكنك البدء من جديد في أي وقت.",
+        "✅ <b>تم إلغاء الطلب بنجاح.</b>\n\nيمكنك البدء من جديد في أي وقت.",
         reply_markup=main_menu_keyboard(),
     )
 
@@ -125,8 +130,7 @@ async def cancel_callback(callback: CallbackQuery, state: FSMContext):
         )
 
     await callback.message.answer(
-        "✅ <b>تم إلغاء الطلب بنجاح.</b>\n\n"
-        "يمكنك البدء من جديد في أي وقت.",
+        "✅ <b>تم إلغاء الطلب بنجاح.</b>\n\nيمكنك البدء من جديد في أي وقت.",
         reply_markup=main_menu_keyboard(),
     )
     await callback.answer()
@@ -205,8 +209,7 @@ async def my_orders_callback(callback: CallbackQuery):
     await callback.message.answer("\n".join(lines))
     await callback.answer()
     logger.info(
-        "User %s viewed their order history via button (%s orders)",
-        user.id, len(orders),
+        "User %s viewed order history via button (%s orders)", user.id, len(orders),
     )
 
 
@@ -215,7 +218,7 @@ async def my_orders_callback(callback: CallbackQuery):
 # ═══════════════════════════════════════════════════════════
 
 async def _send_welcome(message: Message, first_name: str):
-    """Send the welcome video + main menu to a regular user."""
+    """Send the welcome video + main menu to a regular subscribed user."""
     caption = (
         f"مرحباً <b>{first_name}</b> 👋\n\n"
         "أهلاً بك في بوت <b>YS | 777</b>\n\n"
@@ -238,8 +241,8 @@ async def _send_admin_welcome(message: Message, first_name: str):
     Send the admin control panel to owner / admins.
     Subscription check is completely skipped for these users.
     """
-    user_id = message.from_user.id if hasattr(message, "from_user") else 0
-    role = "👑 المالك" if is_owner(user_id) else "🛡️ مشرف"
+    user_id = message.from_user.id if hasattr(message, "from_user") and message.from_user else 0
+    role    = "👑 المالك" if is_owner(user_id) else "🛡️ مشرف"
 
     text = (
         f"مرحباً <b>{first_name}</b> — {role}\n\n"
