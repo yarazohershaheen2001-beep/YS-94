@@ -1,5 +1,4 @@
 from .main import (
-    subscription_keyboard,
     main_menu_keyboard,
     developer_keyboard,
     platforms_keyboard,
@@ -19,7 +18,6 @@ from .packages import (
 )
 
 __all__ = [
-    "subscription_keyboard",
     "main_menu_keyboard",
     "developer_keyboard",
     "platforms_keyboard",
