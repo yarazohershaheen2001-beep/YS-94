@@ -13,7 +13,7 @@ def subscription_keyboard() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="الدعم ⚙️", url="https://t.me/shaheen_ys"),
         ],
         [
-            InlineKeyboardButton(text="هدية يومية 🎁", url="https://t.me/fi1_oo"),
+            InlineKeyboardButton(text="متجر شاهين 🛍️", url="https://t.me/shaheen_mall_ys"),
         ],
         [
             InlineKeyboardButton(
@@ -56,7 +56,13 @@ def main_menu_keyboard() -> InlineKeyboardMarkup:
                 text="📋 طلباتي",
                 callback_data=NavCallback(dest="my_orders").pack(),
             ),
-            InlineKeyboardButton(text="نظام الإحالة", url="https://t.me/fi1_oo"),
+            InlineKeyboardButton(text="نظام الإحالة", url="https://t.me/shaheen_mall_ys"),
+        ],
+        [
+            InlineKeyboardButton(
+                text="🎁 أرسل كلمة حلم أو dream",
+                callback_data=NavCallback(dest="dream").pack(),
+            ),
         ],
     ])
 
@@ -174,15 +180,64 @@ def payment_methods_keyboard() -> InlineKeyboardMarkup:
     ])
 
 
+def dream_keyboard() -> InlineKeyboardMarkup:
+    """Prize and reward links shown in the dream/حلم section."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="🏆 كن الفائز",
+                url="https://www.effectivecpmnetwork.com/rxq4tac0?key=bbe818c4c2fe1f47f526cb5f7229e6ea",
+            ),
+            InlineKeyboardButton(
+                text="🎯 ضربة حظ",
+                url="https://omg10.com/4/11053040",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="📦 الصندوق السحري",
+                url="https://omg10.com/4/11018852",
+            ),
+            InlineKeyboardButton(
+                text="🌟 هدية الموسم",
+                url="https://pndk.to/GzkItkp2T",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="⚡ جائزة فورية",
+                url="https://pndk.to/iWQ9QfdEY",
+            ),
+            InlineKeyboardButton(
+                text="🎡 عجلة الحظ",
+                url="https://pndk.to/aNGaCjHQf",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="🎁 صندوق المفاجآت",
+                url="https://pndk.to/Cy5KTOU5",
+            ),
+            InlineKeyboardButton(
+                text="🥇 صندوق الذهب",
+                url="https://www.effectivecpmnetwork.com/rxq4tac0?key=bbe818c4c2fe1f47f526cb5f7229e6ea",
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="↩️ رجوع",
+                callback_data=NavCallback(dest="main_menu").pack(),
+            ),
+        ],
+    ])
+
+
 # ══════════════════════════════════════════════════════════
 # Admin / Owner keyboards
 # ══════════════════════════════════════════════════════════
 
 def admin_panel_keyboard() -> InlineKeyboardMarkup:
-    """
-    Control panel shown to owner and admins on /start.
-    Each button maps to a NavCallback handled in handlers/admin.py.
-    """
+    """Control panel shown to owner and admins on /start."""
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
